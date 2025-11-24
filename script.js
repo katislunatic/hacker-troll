@@ -103,62 +103,27 @@ if (type === "trace") {
     await print("> Trace complete.\n");
 }
 
-// ------------------------
-// DEVICE INFO SCAN
-// ------------------------
-if (type === "device") {
-    await print("> Initializing Device Info Scan...");
-    
-    // Basic browser/device info
-    const platform = navigator.platform;
-    const ua = navigator.userAgent;
-    const language = navigator.language;
-    const cores = navigator.hardwareConcurrency || "Unknown";
-    const memory = navigator.deviceMemory ? navigator.deviceMemory + " GB" : "Unknown";
-    const width = screen.width;
-    const height = screen.height;
-    const pixelRatio = window.devicePixelRatio;
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const touch = 'ontouchstart' in window ? "ENABLED" : "DISABLED";
-    
-    await print(`> Platform: ${platform}`);
-    await print(`> Browser: ${ua}`);
-    await print(`> Language: ${language}`);
-    await print(`> CPU Cores: ${cores}`);
-    await print(`> Approx RAM: ${memory}`);
-    await print(`> Screen: ${width}x${height} @ ${pixelRatio}x`);
-    await print(`> Touch Support: ${touch}`);
-    await print(`> Timezone: ${timezone}`);
+  // ------------------------
+  // DEVICE INFO SCAN
+  // ------------------------
+  if (type === "device") {
+    await print("> Gathering client device information...");
+    await print("> Parsing user-agent string...");
 
-    // GPU info via WebGL
-    let gpu = "Unknown";
-    try {
-        const canvas = document.createElement("canvas");
-        const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-        if (gl) {
-            const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
-            if (debugInfo) {
-                gpu = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-            }
-        }
-    } catch(e){}
-    await print(`> GPU: ${gpu}`);
+    await print(`  Device: ${navigator.platform}`);
+    await print(`  Browser: ${navigator.userAgent}`);
+    await print(`  Language: ${navigator.language}`);
+    await print(`  Screen Resolution: ${window.screen.width}x${window.screen.height}`);
 
-    // Battery info
-    if (navigator.getBattery) {
-        try {
-            const battery = await navigator.getBattery();
-            await print(`> Battery Level: ${Math.round(battery.level * 100)}%`);
-            await print(`> Charging: ${battery.charging ? "Yes" : "No"}`);
-        } catch(e){}
-    }
+    await print("> Scanning local network interfaces...");
+    await print("  Interface 1: 192.168.1.** (private)");
+    await print("  Interface 2: 10.0.0.** (private)");
 
-    // Network info
-    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (connection && connection.effectiveType) {
-        await print(`> Connection Type: ${connection.effectiveType.toUpperCase()}`);
-        await print(`> Downlink: ${connection.downlink} Mbps`);
-    }
+    await print("> Checking security fingerprint...");
+    await print("  Firewall: ACTIVE");
+    await print("  VPN: POSSIBLY ACTIVE");
+    await print("  Tracking Protection: ENABLED");
 
     await print("> Device scan complete.\n");
+  }
 }
