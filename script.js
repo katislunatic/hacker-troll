@@ -38,60 +38,48 @@ async function runSequence(type) {
     await print("> Scan complete.\n");
   }
 
-  // ------------------------
-  // IP TRACE
-  // ------------------------
-  if (type === "trace") {
+ // ------------------------
+// REAL IP TRACE
+// ------------------------
+if (type === "trace") {
+
     await print("> Starting IP trace...");
-    await print("> Initiating outbound request...");
-    await print("> Pinging target...");
+    await print("> Requesting client IP...");
 
-    await print("  Reply from 172.217.5.142: bytes=32 time=22ms TTL=54");
-    await print("  Reply from 172.217.5.142: bytes=32 time=23ms TTL=54");
+    // Get the real IP address
+    let ipData = await fetch("https://api.ipify.org?format=json")
+        .then(res => res.json())
+        .catch(() => ({ ip: "UNKNOWN" }));
 
-    await print("> Running traceroute sequence:");
+    await print(`> Client IP detected: ${ipData.ip}`);
+    await print("> Pulling extended geolocation data...");
+
+    // Get detailed info (city, region, country, ISP, etc.)
+    let info = await fetch("https://ipinfo.io/json?token=YOUR_TOKEN_HERE")
+        .then(res => res.json())
+        .catch(() => ({
+            city: "UNKNOWN",
+            region: "UNKNOWN",
+            country: "UNKNOWN",
+            org: "UNKNOWN",
+            loc: "0,0"
+        }));
+
+    await print(`  Location: ${info.city}, ${info.region}, ${info.country}`);
+    await print(`  ISP: ${info.org}`);
+    await print(`  Coordinates: ${info.loc}`);
+
+    await print("> Running traceroute sequence...");
     await print("  hop 1: 10.0.0.1 (Router)");
     await print("  hop 2: 96.120.0.54");
     await print("  hop 3: 68.86.91.25");
     await print("  hop 4: 142.250.64.14");
-    await print("  hop 5: 172.217.5.142 (Target)");
+    await print(`  hop 5: ${ipData.ip} (Client)`);
 
-    await print("> Resolving geographic origin...");
-    await print("> Approximate region: **REDACTED**");
-
+    await print("> Resolving network fingerprint...");
+    await print("> VPN: POSSIBLY ACTIVE");
     await print("> Trace completed.\n");
-  }
-
-  // ------------------------
-  // BREACH ATTEMPT
-  // ------------------------
-  if (type === "breach") {
-    await print("> Attempting remote access...");
-    await print("> Connecting to SSH...");
-    await print("  Error: Public key mismatch");
-
-    await print("> Retrying with fallback methods...");
-    await print("  Injecting override payload...");
-    await print("  Bypassing authentication...");
-
-    await print("> Access Granted.");
-    await print("> Extracting system logs...");
-    await print("> Operation complete.\n");
-  }
-
-  // ------------------------
-  // DECRYPT FILES
-  // ------------------------
-  if (type === "decrypt") {
-    await print("> Loading encrypted files...");
-    await print("> Running AES-256 brute-force routine...");
-    await print("  Attempt 1/4096...");
-    await print("  Attempt 231/4096...");
-    await print("  Attempt 1133/4096...");
-
-    await print("> Key match found!");
-    await print("> Decryption complete.\n");
-  }
+}
 
   // ------------------------
   // DEVICE INFO SCAN
