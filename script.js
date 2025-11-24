@@ -38,47 +38,69 @@ async function runSequence(type) {
     await print("> Scan complete.\n");
   }
 
- // ------------------------
+// ------------------------
 // REAL IP TRACE
 // ------------------------
 if (type === "trace") {
 
-    await print("> Starting IP trace...");
-    await print("> Requesting client IP...");
+    await print("> Initiating IP trace...");
+    await print("> Establishing external IP connection...");
 
-    // Get the real IP address
+    // 1. Get client IP (100% real)
     let ipData = await fetch("https://api.ipify.org?format=json")
         .then(res => res.json())
         .catch(() => ({ ip: "UNKNOWN" }));
 
-    await print(`> Client IP detected: ${ipData.ip}`);
-    await print("> Pulling extended geolocation data...");
+    await print(`> External IP found: ${ipData.ip}`);
+    await print("> Requesting extended geolocation records...");
 
-    // Get detailed info (city, region, country, ISP, etc.)
-    let info = await fetch("https://ipinfo.io/json?token=YOUR_TOKEN_HERE")
+    // 2. Detailed IP info
+    let info = await fetch("https://ipinfo.io/json?token=f2f682efddfa5d")
         .then(res => res.json())
         .catch(() => ({
             city: "UNKNOWN",
             region: "UNKNOWN",
             country: "UNKNOWN",
             org: "UNKNOWN",
-            loc: "0,0"
+            loc: "0,0",
+            timezone: "UNKNOWN",
+            postal: "UNKNOWN",
+            hostname: "UNKNOWN"
         }));
 
-    await print(`  Location: ${info.city}, ${info.region}, ${info.country}`);
-    await print(`  ISP: ${info.org}`);
-    await print(`  Coordinates: ${info.loc}`);
+    await print("");
+    await print("=== RESOLVED CLIENT METADATA ===");
+    await print(`IP Address:         ${info.ip || ipData.ip}`);
+    await print(`Hostname:           ${info.hostname || "UNKNOWN"}`);
+    await print(`City:               ${info.city}`);
+    await print(`Region:             ${info.region}`);
+    await print(`Country:            ${info.country}`);
+    await print(`Postal Code:        ${info.postal}`);
+    await print(`Coordinates:        ${info.loc}`);
+    await print(`Timezone:           ${info.timezone}`);
+    await print(`ISP / Organization: ${info.org}`);
+    await print("================================\n");
 
-    await print("> Running traceroute sequence...");
-    await print("  hop 1: 10.0.0.1 (Router)");
-    await print("  hop 2: 96.120.0.54");
-    await print("  hop 3: 68.86.91.25");
-    await print("  hop 4: 142.250.64.14");
-    await print(`  hop 5: ${ipData.ip} (Client)`);
+    await print("> Beginning network hop scan...");
 
-    await print("> Resolving network fingerprint...");
-    await print("> VPN: POSSIBLY ACTIVE");
-    await print("> Trace completed.\n");
+    // 3. Fake traceroute (looks real)
+    await print(" hop 1: 10.0.0.1            (local router)");
+    await print(" hop 2: 96.120.0.54         (regional node)");
+    await print(" hop 3: 68.86.91.25         (ISP backbone)");
+    await print(" hop 4: 142.250.64.14       (global transit)");
+    await print(` hop 5: ${ipData.ip}        (client endpoint)`);
+
+    await print("> Network fingerprinting...");
+    await print("> Proxy/VPN: ANALYZING...");
+
+    // Simple VPN guess based on hostname
+    if (info.hostname && info.hostname.toLowerCase().includes("vpn")) {
+        await print("> Status: VPN LIKELY ACTIVE");
+    } else {
+        await print("> Status: No VPN detected");
+    }
+
+    await print("> Trace complete.\n");
 }
 
   // ------------------------
