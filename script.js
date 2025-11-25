@@ -25,7 +25,6 @@ async function runSequence(type) {
 // ADDRESS → GEO LOOKUP
 // ------------------------
 if (type === "address") {
-
     let address = prompt("Enter the address to lookup:");
 
     if (!address || address.trim() === "") {
@@ -37,15 +36,15 @@ if (type === "address") {
     await print(`> Searching for: ${address}`);
     await print("> Contacting geolocation servers...");
 
-    // Encode the address for URL
     const query = encodeURIComponent(address);
 
-    // Use CORS proxy to bypass browser restrictions
-    const proxy = "https://corsproxy.io/?";
-    let data = await fetch(`${proxy}https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`, {
+    // Use a free CORS proxy to bypass browser restrictions
+    const url = `https://corsproxy.io/?https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`;
+
+    let data = await fetch(url, {
         headers: {
             "Accept": "application/json",
-            "User-Agent": "MyTerminalApp/1.0 (your_email@example.com)" // required by Nominatim
+            "User-Agent": "MyTerminalApp/1.0 (example@example.com)" // Nominatim requires a User-Agent
         }
     })
     .then(res => res.json())
@@ -64,11 +63,8 @@ if (type === "address") {
     await print(`Matched Address:    ${result.display_name}`);
     await print(`Latitude:           ${result.lat}`);
     await print(`Longitude:          ${result.lon}`);
-
-    // Optional: bounding box (area of the location)
     await print(`Bounding Box:       ${result.boundingbox.join(", ")}`);
     await print("==============================\n");
-
     await print("> Address lookup complete.\n");
 }
 
