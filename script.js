@@ -244,33 +244,30 @@ async function runSequence(type) {
   }
 
 
-  // ------------------------
-  // SPEED TEST (Ping + Download)
-  // ------------------------
-  if (type === "speedtest") {
-    await print("> Initializing Speed Test...");
-    await print("> Testing ping...");
+// ------------------------
+// SPEED TEST
+// ------------------------
+if (type === "speed") {
+  await print("> Initializing Speed Test...");
+  await print("> Testing ping...");
 
-    const start = performance.now();
-    await fetch("https://api.ipify.org?format=json");
-    const ping = Math.round(performance.now() - start);
+  const start = performance.now();
+  await fetch("https://api.ipify.org?format=json");
+  const ping = Math.round(performance.now() - start);
+  await print(`Ping: ${ping} ms`);
+  await print("> Testing download speed...");
 
-    await print(`Ping: ${ping} ms`);
-    await print("> Testing download speed...");
+  const testUrl = "https://speed.hetzner.de/10MB.bin";
+  const t1 = performance.now();
+  const dl = await fetch(testUrl);
+  const buf = await dl.arrayBuffer();
+  const t2 = performance.now();
 
-    const testUrl = "https://speed.hetzner.de/10MB.bin";
-    const t1 = performance.now();
-    const dl = await fetch(testUrl);
-    const buf = await dl.arrayBuffer();
-    const t2 = performance.now();
+  const mbps = (((buf.byteLength / 1024 / 1024) / ((t2 - t1) / 1000)) * 8).toFixed(2);
+  await print(`Download Speed: ${mbps} Mbps`);
 
-    const mbps = (((buf.byteLength / 1024 / 1024) / ((t2 - t1) / 1000)) * 8).toFixed(2);
-
-    await print(`Download Speed: ${mbps} Mbps`);
-
-    await print("\n> Speed Test complete.\n");
-  }
-
+  await print("\n> Speed Test complete.\n");
+}
 
   // ------------------------
   // BREACH ATTEMPT (fake)
