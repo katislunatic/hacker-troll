@@ -38,10 +38,10 @@ async function runSequence(type) {
     await print("> Scan complete.\n");
   }
 
-  // ------------------------
-  // REAL IP TRACE
-  // ------------------------
-  if (type === "trace") {
+// ------------------------
+// REAL IP TRACE + VPN DETECTION
+// ------------------------
+if (type === "trace") {
 
     await print("> Initiating IP trace...");
     await print("> Establishing external IP connection...");
@@ -65,7 +65,8 @@ async function runSequence(type) {
             loc: "0,0",
             timezone: "UNKNOWN",
             postal: "UNKNOWN",
-            hostname: "UNKNOWN"
+            hostname: "UNKNOWN",
+            privacy: {}
         }));
 
     await print("");
@@ -93,15 +94,36 @@ async function runSequence(type) {
     await print("> Network fingerprinting...");
     await print("> Proxy/VPN: ANALYZING...");
 
-    // VPN guess
+    // ------------------------
+    // VPN / Proxy / Hosting Detection
+    // ------------------------
+    let vpnStatus = "UNKNOWN";
+
+    // 1. IPinfo privacy flags
+    if (info.privacy?.vpn) vpnStatus = "YES (Listed VPN Provider)";
+    else if (info.privacy?.proxy) vpnStatus = "YES (Proxy Detected)";
+    else if (info.privacy?.tor) vpnStatus = "YES (TOR Node)";
+    else if (info.privacy?.hosting) vpnStatus = "LIKELY (Data Center IP)";
+
+    // 2. ISP / Org keywords check
+    const hostingKeywords = [
+        "amazon", "aws", "google", "digitalocean", "ovh", "hetzner", "linode",
+        "contabo", "azure", "cloudflare", "vultr"
+    ];
+    const orgLower = (info.org || "").toLowerCase();
+    if (hostingKeywords.some(k => orgLower.includes(k))) {
+        vpnStatus = "LIKELY (Hosting Provider IP)";
+    }
+
+    await print(`> VPN Detection: ${vpnStatus}`);
+
+    // Optional: keep old hostname-based check
     if (info.hostname && info.hostname.toLowerCase().includes("vpn")) {
-        await print("> Status: VPN LIKELY ACTIVE");
-    } else {
-        await print("> Status: No VPN detected");
+        await print("> Hostname indicates VPN: POSSIBLY ACTIVE");
     }
 
     await print("> Trace complete.\n");
-  }
+}
 
   // ------------------------
   // ACCURATE DEVICE INFO SCAN
