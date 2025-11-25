@@ -39,7 +39,7 @@ async function runSequence(type) {
   }
 
 // ------------------------
-// REAL IP TRACE + VPN DETECTION
+// REAL IP TRACE + VPN DETECTION (Free API compatible)
 // ------------------------
 if (type === "trace") {
 
@@ -65,8 +65,7 @@ if (type === "trace") {
             loc: "0,0",
             timezone: "UNKNOWN",
             postal: "UNKNOWN",
-            hostname: "UNKNOWN",
-            privacy: {}
+            hostname: "UNKNOWN"
         }));
 
     await print("");
@@ -95,17 +94,16 @@ if (type === "trace") {
     await print("> Proxy/VPN: ANALYZING...");
 
     // ------------------------
-    // VPN / Proxy / Hosting Detection
+    // VPN / Proxy / Hosting Detection (Free API)
     // ------------------------
-    let vpnStatus = "UNKNOWN";
+    let vpnStatus = "No VPN detected";
 
-    // 1. IPinfo privacy flags
-    if (info.privacy?.vpn) vpnStatus = "YES (Listed VPN Provider)";
-    else if (info.privacy?.proxy) vpnStatus = "YES (Proxy Detected)";
-    else if (info.privacy?.tor) vpnStatus = "YES (TOR Node)";
-    else if (info.privacy?.hosting) vpnStatus = "LIKELY (Data Center IP)";
+    // Hostname check
+    if (info.hostname && info.hostname.toLowerCase().includes("vpn")) {
+        vpnStatus = "YES (Hostname suggests VPN)";
+    }
 
-    // 2. ISP / Org keywords check
+    // ISP / Org keywords check
     const hostingKeywords = [
         "amazon", "aws", "google", "digitalocean", "ovh", "hetzner", "linode",
         "contabo", "azure", "cloudflare", "vultr"
@@ -116,11 +114,6 @@ if (type === "trace") {
     }
 
     await print(`> VPN Detection: ${vpnStatus}`);
-
-    // Optional: keep old hostname-based check
-    if (info.hostname && info.hostname.toLowerCase().includes("vpn")) {
-        await print("> Hostname indicates VPN: POSSIBLY ACTIVE");
-    }
 
     await print("> Trace complete.\n");
 }
