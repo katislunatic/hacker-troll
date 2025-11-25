@@ -38,15 +38,15 @@ async function runSequence(type) {
     await print("> Scan complete.\n");
   }
 
-// ------------------------
-// REAL IP TRACE
-// ------------------------
-if (type === "trace") {
+  // ------------------------
+  // REAL IP TRACE
+  // ------------------------
+  if (type === "trace") {
 
     await print("> Initiating IP trace...");
     await print("> Establishing external IP connection...");
 
-    // 1. Get client IP (100% real)
+    // 1. Get client IP (REAL)
     let ipData = await fetch("https://api.ipify.org?format=json")
         .then(res => res.json())
         .catch(() => ({ ip: "UNKNOWN" }));
@@ -83,7 +83,7 @@ if (type === "trace") {
 
     await print("> Beginning network hop scan...");
 
-    // 3. Fake traceroute (looks real)
+    // FAKE TRACEROUTE
     await print(" hop 1: 10.0.0.1            (local router)");
     await print(" hop 2: 96.120.0.54         (regional node)");
     await print(" hop 3: 68.86.91.25         (ISP backbone)");
@@ -93,7 +93,7 @@ if (type === "trace") {
     await print("> Network fingerprinting...");
     await print("> Proxy/VPN: ANALYZING...");
 
-    // Simple VPN guess based on hostname
+    // VPN guess
     if (info.hostname && info.hostname.toLowerCase().includes("vpn")) {
         await print("> Status: VPN LIKELY ACTIVE");
     } else {
@@ -101,94 +101,85 @@ if (type === "trace") {
     }
 
     await print("> Trace complete.\n");
-}
+  }
 
-// ------------------------
-// ACCURATE DEVICE INFO SCAN
-// ------------------------
-if (type === "device") {
+  // ------------------------
+  // ACCURATE DEVICE INFO SCAN
+  // ------------------------
+  if (type === "device") {
     await print("> Starting Accurate Device Scan...");
     await print("> Collecting browser and hardware identifiers...\n");
 
-    // BASIC IDENTIFIERS
     await print(`Platform: ${navigator.platform || "Unknown"}`);
     await print(`User Agent: ${navigator.userAgent}`);
     await print(`Language: ${navigator.language}`);
     await print(`Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
 
-    // CPU CORES
     await print(`CPU Cores: ${navigator.hardwareConcurrency || "Unknown"}`);
-
-    // RAM
     await print(`Approx RAM: ${navigator.deviceMemory ? navigator.deviceMemory + " GB" : "Unknown"}`);
 
-    // SCREEN INFO
     await print(`Screen Resolution: ${screen.width} x ${screen.height}`);
     await print(`Pixel Ratio: ${window.devicePixelRatio}`);
 
-    // TOUCH
     await print(`Touch Support: ${("ontouchstart" in window) ? "Yes" : "No"}`);
 
-    // GPU INFO (ACCURATE via WebGL)
+    // GPU INFO
     try {
         const canvas = document.createElement("canvas");
         const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
         if (gl) {
-            const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
-            const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
-            const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            const debug = gl.getExtension("WEBGL_debug_renderer_info");
+            const vendor = gl.getParameter(debug.UNMASKED_VENDOR_WEBGL);
+            const renderer = gl.getParameter(debug.UNMASKED_RENDERER_WEBGL);
+
             await print(`GPU Vendor: ${vendor}`);
             await print(`GPU Renderer: ${renderer}`);
         } else {
-            await print("GPU: Unknown (WebGL unavailable)");
+            await print("GPU: Unknown");
         }
-    } catch (e) {
-        await print("GPU: Unknown (blocked)");
+    } catch {
+        await print("GPU: Unknown");
     }
 
-    // STORAGE (REAL BROWSER API)
+    // STORAGE
     if (navigator.storage && navigator.storage.estimate) {
         try {
             const est = await navigator.storage.estimate();
-            const usage = (est.usage / (1024**3)).toFixed(2);
-            const quota = (est.quota / (1024**3)).toFixed(2);
-            await print(`Storage Used: ${usage} GB`);
-            await print(`Storage Total: ${quota} GB`);
-        } catch (e) {
+            await print(`Storage Used: ${(est.usage / 1024**3).toFixed(2)} GB`);
+            await print(`Storage Total: ${(est.quota / 1024**3).toFixed(2)} GB`);
+        } catch {
             await print("Storage: Unknown");
         }
     }
 
-    // BATTERY INFO (REAL IF SUPPORTED)
+    // BATTERY
     if (navigator.getBattery) {
         try {
             const battery = await navigator.getBattery();
             await print(`Battery Level: ${Math.round(battery.level * 100)}%`);
             await print(`Charging: ${battery.charging ? "Yes" : "No"}`);
-        } catch (e) {
+        } catch {
             await print("Battery: Unknown");
         }
     }
 
-    // NETWORK INFO (ACCURATE)
+    // NETWORK
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     if (connection) {
         await print(`Connection Type: ${connection.effectiveType}`);
         await print(`Downlink: ${connection.downlink} Mbps`);
     }
 
-    // AUDIO/VIDEO DEVICES (NAMES ONLY IF PERMISSION ALREADY GRANTED)
+    // DEVICES
     try {
         const devices = await navigator.mediaDevices.enumerateDevices();
-        const cams = devices.filter(d => d.kind === "videoinput").length;
-        const mics = devices.filter(d => d.kind === "audioinput").length;
-        await print(`Cameras Detected: ${cams}`);
-        await print(`Microphones Detected: ${mics}`);
-    } catch (e) {
+        await print(`Cameras Detected: ${devices.filter(d => d.kind === "videoinput").length}`);
+        await print(`Microphones Detected: ${devices.filter(d => d.kind === "audioinput").length}`);
+    } catch {
         await print("Camera/Microphone Access: Blocked");
     }
 
-    // PERMISSION STATUS (ACCURATE)
+    // PERMISSIONS
     if (navigator.permissions) {
         const camPerm = await navigator.permissions.query({ name: "camera" }).catch(() => null);
         const micPerm = await navigator.permissions.query({ name: "microphone" }).catch(() => null);
@@ -198,5 +189,65 @@ if (type === "device") {
     }
 
     await print("\n> Accurate device scan complete.\n");
-}
+  }
+
+  // ------------------------
+  // BREACH ATTEMPT
+  // ------------------------
+  if (type === "breach") {
+    await print("> Initializing breach tools...");
+    await print("> Establishing connection to target...");
+    await print("> Injecting exploit payload...");
+
+    for (let i = 1; i <= 6; i++) {
+      await print(`  - Payload packet ${i}/6 delivered`);
+    }
+
+    await print("> Attempting privilege escalation...");
+    await print("> Accessing restricted directories...");
+    await print("  /etc/root/");
+    await print("  /sys/kernel/");
+    await print("  /var/auth/tokens/");
+
+    await print("> Firewall detected intrusion — retrying...");
+    await print("> Bypass successful.");
+
+    await print("> Breach successful. Root access acquired.\n");
+  }
+
+  // ------------------------
+  // DECRYPT FILES
+  // ------------------------
+  if (type === "decrypt") {
+
+    await print("> Locating encrypted file blocks...");
+
+    let files = [
+      "vault_sys.enc",
+      "auth_keys.enc",
+      "backup_0312.enc",
+      "userdata.bin.enc",
+      "config_master.enc"
+    ];
+
+    for (let f of files) {
+      await print(`> Found: ${f}`);
+    }
+
+    await print("> Beginning decryption sequence...");
+
+    // Hex stream
+    for (let i = 0; i < 20; i++) {
+      let line = "";
+      for (let j = 0; j < 32; j++) {
+        line += Math.floor(Math.random() * 16).toString(16);
+      }
+      await print(line);
+    }
+
+    await print("> Validating data...");
+    await print("> Integrity check: PASSED");
+    await print("> Files decrypted successfully.\n");
+  }
+
 }
