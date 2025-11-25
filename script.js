@@ -38,15 +38,14 @@ async function runSequence(type) {
     await print("> Scan complete.\n");
   }
 
-// ------------------------
-// REAL IP TRACE + VPN DETECTION (Free API compatible)
-// ------------------------
-if (type === "trace") {
+  // ------------------------
+  // REAL IP TRACE + VPN DETECTION
+  // ------------------------
+  if (type === "trace") {
 
     await print("> Initiating IP trace...");
     await print("> Establishing external IP connection...");
 
-    // 1. Get client IP (REAL)
     let ipData = await fetch("https://api.ipify.org?format=json")
         .then(res => res.json())
         .catch(() => ({ ip: "UNKNOWN" }));
@@ -54,7 +53,6 @@ if (type === "trace") {
     await print(`> External IP found: ${ipData.ip}`);
     await print("> Requesting extended geolocation records...");
 
-    // 2. Detailed IP info
     let info = await fetch("https://ipinfo.io/json?token=f2f682efddfa5d")
         .then(res => res.json())
         .catch(() => ({
@@ -82,8 +80,6 @@ if (type === "trace") {
     await print("================================\n");
 
     await print("> Beginning network hop scan...");
-
-    // FAKE TRACEROUTE
     await print(" hop 1: 10.0.0.1            (local router)");
     await print(" hop 2: 96.120.0.54         (regional node)");
     await print(" hop 3: 68.86.91.25         (ISP backbone)");
@@ -93,22 +89,19 @@ if (type === "trace") {
     await print("> Network fingerprinting...");
     await print("> Proxy/VPN: ANALYZING...");
 
-    // ------------------------
-    // VPN / Proxy / Hosting Detection (Free API)
-    // ------------------------
     let vpnStatus = "No VPN detected";
 
-    // Hostname check
     if (info.hostname && info.hostname.toLowerCase().includes("vpn")) {
         vpnStatus = "YES (Hostname suggests VPN)";
     }
 
-    // ISP / Org keywords check
     const hostingKeywords = [
-        "amazon", "aws", "google", "digitalocean", "ovh", "hetzner", "linode",
-        "contabo", "azure", "cloudflare", "vultr"
+        "amazon", "aws", "google", "digitalocean", "ovh",
+        "hetzner", "linode", "contabo", "azure", "cloudflare", "vultr"
     ];
+
     const orgLower = (info.org || "").toLowerCase();
+
     if (hostingKeywords.some(k => orgLower.includes(k))) {
         vpnStatus = "LIKELY (Hosting Provider IP)";
     }
@@ -116,7 +109,8 @@ if (type === "trace") {
     await print(`> VPN Detection: ${vpnStatus}`);
 
     await print("> Trace complete.\n");
-}
+  }
+
 
   // ------------------------
   // ACCURATE DEVICE INFO SCAN
@@ -135,13 +129,13 @@ if (type === "trace") {
 
     await print(`Screen Resolution: ${screen.width} x ${screen.height}`);
     await print(`Pixel Ratio: ${window.devicePixelRatio}`);
-
     await print(`Touch Support: ${("ontouchstart" in window) ? "Yes" : "No"}`);
 
-    // GPU INFO
+    // GPU detection
     try {
         const canvas = document.createElement("canvas");
         const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+
         if (gl) {
             const debug = gl.getExtension("WEBGL_debug_renderer_info");
             const vendor = gl.getParameter(debug.UNMASKED_VENDOR_WEBGL);
@@ -156,7 +150,7 @@ if (type === "trace") {
         await print("GPU: Unknown");
     }
 
-    // STORAGE
+    // Storage estimate
     if (navigator.storage && navigator.storage.estimate) {
         try {
             const est = await navigator.storage.estimate();
@@ -167,7 +161,7 @@ if (type === "trace") {
         }
     }
 
-    // BATTERY
+    // Battery
     if (navigator.getBattery) {
         try {
             const battery = await navigator.getBattery();
@@ -178,14 +172,14 @@ if (type === "trace") {
         }
     }
 
-    // NETWORK
+    // Network info
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     if (connection) {
         await print(`Connection Type: ${connection.effectiveType}`);
         await print(`Downlink: ${connection.downlink} Mbps`);
     }
 
-    // DEVICES
+    // Devices
     try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         await print(`Cameras Detected: ${devices.filter(d => d.kind === "videoinput").length}`);
@@ -194,7 +188,7 @@ if (type === "trace") {
         await print("Camera/Microphone Access: Blocked");
     }
 
-    // PERMISSIONS
+    // Permissions
     if (navigator.permissions) {
         const camPerm = await navigator.permissions.query({ name: "camera" }).catch(() => null);
         const micPerm = await navigator.permissions.query({ name: "microphone" }).catch(() => null);
@@ -206,8 +200,80 @@ if (type === "trace") {
     await print("\n> Accurate device scan complete.\n");
   }
 
+
   // ------------------------
-  // BREACH ATTEMPT
+  // BROWSER FINGERPRINT
+  // ------------------------
+  if (type === "fingerprint") {
+    await print("> Collecting Browser Fingerprint...");
+    await print("> Generating fingerprint hash...\n");
+
+    function hash(str) {
+      let h = 0;
+      for (let i = 0; i < str.length; i++) {
+        h = (h << 5) - h + str.charCodeAt(i);
+      }
+      return (h >>> 0).toString(16);
+    }
+
+    const fingerprintData = {
+      ua: navigator.userAgent,
+      platform: navigator.platform,
+      lang: navigator.language,
+      cores: navigator.hardwareConcurrency,
+      ram: navigator.deviceMemory,
+      res: `${screen.width}x${screen.height}`,
+      tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      touch: "ontouchstart" in window,
+      pixelRatio: window.devicePixelRatio
+    };
+
+    const fpHash = hash(JSON.stringify(fingerprintData));
+
+    await print(`Fingerprint Hash: ${fpHash}`);
+    await print(`Platform: ${fingerprintData.platform}`);
+    await print(`Resolution: ${fingerprintData.res}`);
+    await print(`Language: ${fingerprintData.lang}`);
+    await print(`Touch Device: ${fingerprintData.touch}`);
+    await print(`CPU Cores: ${fingerprintData.cores}`);
+    await print(`RAM: ${fingerprintData.ram} GB`);
+    await print(`Timezone: ${fingerprintData.tz}`);
+    await print(`Pixel Ratio: ${fingerprintData.pixelRatio}`);
+
+    await print("\n> Browser fingerprint complete.\n");
+  }
+
+
+  // ------------------------
+  // SPEED TEST (Ping + Download)
+  // ------------------------
+  if (type === "speedtest") {
+    await print("> Initializing Speed Test...");
+    await print("> Testing ping...");
+
+    const start = performance.now();
+    await fetch("https://api.ipify.org?format=json");
+    const ping = Math.round(performance.now() - start);
+
+    await print(`Ping: ${ping} ms`);
+    await print("> Testing download speed...");
+
+    const testUrl = "https://speed.hetzner.de/10MB.bin";
+    const t1 = performance.now();
+    const dl = await fetch(testUrl);
+    const buf = await dl.arrayBuffer();
+    const t2 = performance.now();
+
+    const mbps = (((buf.byteLength / 1024 / 1024) / ((t2 - t1) / 1000)) * 8).toFixed(2);
+
+    await print(`Download Speed: ${mbps} Mbps`);
+
+    await print("\n> Speed Test complete.\n");
+  }
+
+
+  // ------------------------
+  // BREACH ATTEMPT (fake)
   // ------------------------
   if (type === "breach") {
     await print("> Initializing breach tools...");
@@ -231,7 +297,7 @@ if (type === "trace") {
   }
 
   // ------------------------
-  // DECRYPT FILES
+  // DECRYPT FILES (fake)
   // ------------------------
   if (type === "decrypt") {
 
@@ -251,7 +317,6 @@ if (type === "trace") {
 
     await print("> Beginning decryption sequence...");
 
-    // Hex stream
     for (let i = 0; i < 20; i++) {
       let line = "";
       for (let j = 0; j < 32; j++) {
