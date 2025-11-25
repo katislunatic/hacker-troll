@@ -22,6 +22,57 @@ function print(line, delay = 20) {
 async function runSequence(type) {
 
 // ------------------------
+// ADDRESS → GEO LOOKUP
+// ------------------------
+if (type === "address") {
+
+    let address = prompt("Enter the address to lookup:");
+
+    if (!address || address.trim() === "") {
+        await print("> Address lookup cancelled.\n");
+        return;
+    }
+
+    address = address.trim();
+    await print(`> Searching for: ${address}`);
+    await print("> Contacting geolocation servers...");
+
+    // Encode the address for URL
+    const query = encodeURIComponent(address);
+
+    // Free OpenStreetMap Geocoding API
+    let data = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`, {
+        headers: {
+            "User-Agent": "YourAppName/1.0" // Nominatim requires this
+        }
+    })
+        .then(res => res.json())
+        .catch(() => null);
+
+    if (!data || data.length === 0) {
+        await print("> ERROR: Address not found.\n");
+        return;
+    }
+
+    let result = data[0];
+
+    await print("");
+    await print("=== ADDRESS LOOKUP RESULTS ===");
+
+    await print(`Input Address:      ${address}`);
+    await print(`Matched Address:    ${result.display_name}`);
+    await print(`Latitude:           ${result.lat}`);
+    await print(`Longitude:          ${result.lon}`);
+
+    // Optional: bounding box (area of the location)
+    await print(`Bounding Box:       ${result.boundingbox.join(", ")}`);
+
+    await print("==============================\n");
+
+    await print("> Address lookup complete.\n");
+}
+  
+// ------------------------
 // USER-INPUT IP LOOKUP
 // ------------------------
 if (type === "lookup") {
