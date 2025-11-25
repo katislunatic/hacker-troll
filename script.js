@@ -40,8 +40,9 @@ if (type === "address") {
     // Encode the address for URL
     const query = encodeURIComponent(address);
 
-    // Free OpenStreetMap Geocoding API (Nominatim)
-    let data = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`, {
+    // Use CORS proxy to bypass browser restrictions
+    const proxy = "https://corsproxy.io/?";
+    let data = await fetch(`${proxy}https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`, {
         headers: {
             "Accept": "application/json",
             "User-Agent": "MyTerminalApp/1.0 (your_email@example.com)" // required by Nominatim
@@ -70,7 +71,7 @@ if (type === "address") {
 
     await print("> Address lookup complete.\n");
 }
-  
+
 // ------------------------
 // USER-INPUT IP LOOKUP
 // ------------------------
