@@ -40,14 +40,15 @@ if (type === "address") {
     // Encode the address for URL
     const query = encodeURIComponent(address);
 
-    // Free OpenStreetMap Geocoding API
+    // Free OpenStreetMap Geocoding API (Nominatim)
     let data = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`, {
         headers: {
-            "User-Agent": "YourAppName/1.0" // Nominatim requires this
+            "Accept": "application/json",
+            "User-Agent": "MyTerminalApp/1.0 (your_email@example.com)" // required by Nominatim
         }
     })
-        .then(res => res.json())
-        .catch(() => null);
+    .then(res => res.json())
+    .catch(() => null);
 
     if (!data || data.length === 0) {
         await print("> ERROR: Address not found.\n");
@@ -58,7 +59,6 @@ if (type === "address") {
 
     await print("");
     await print("=== ADDRESS LOOKUP RESULTS ===");
-
     await print(`Input Address:      ${address}`);
     await print(`Matched Address:    ${result.display_name}`);
     await print(`Latitude:           ${result.lat}`);
@@ -66,7 +66,6 @@ if (type === "address") {
 
     // Optional: bounding box (area of the location)
     await print(`Bounding Box:       ${result.boundingbox.join(", ")}`);
-
     await print("==============================\n");
 
     await print("> Address lookup complete.\n");
