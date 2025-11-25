@@ -103,37 +103,6 @@ async function runSequence(type) {
     await print("> Trace complete.\n");
   }
 
-// ------------------------
-// VPN DETECTION
-// ------------------------
-let vpnStatus = "UNKNOWN";
-
-// 1. Check IPinfo privacy flags
-if (info.privacy?.vpn) {
-    vpnStatus = "YES (Listed VPN Provider)";
-} else if (info.privacy?.proxy) {
-    vpnStatus = "YES (Proxy Detected)";
-} else if (info.privacy?.tor) {
-    vpnStatus = "YES (TOR Node)";
-} else if (info.privacy?.hosting) {
-    vpnStatus = "LIKELY (Data Center IP)";
-}
-
-// 2. Check if the ISP is a known VPN or hosting provider
-const hostingKeywords = [
-    "amazon", "aws", "google", "digitalocean", "ovh", "hetzner", "linode",
-    "contabo", "azure", "cloudflare", "vultr"
-];
-
-let orgLower = (info.org || "").toLowerCase();
-if (hostingKeywords.some(k => orgLower.includes(k))) {
-    vpnStatus = "LIKELY (Hosting Provider IP)";
-}
-
-// 3. Final print
-await print(`> VPN Detection: ${vpnStatus}`);
-  }
-  
   // ------------------------
   // ACCURATE DEVICE INFO SCAN
   // ------------------------
