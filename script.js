@@ -20,6 +20,72 @@ function print(line, delay = 20) {
 }
 
 async function runSequence(type) {
+
+// ------------------------
+// USER-INPUT IP LOOKUP
+// ------------------------
+if (type === "lookup") {
+
+    // Ask user for IP using prompt()
+    let targetIP = prompt("Enter an IP address to lookup:");
+
+    if (!targetIP || targetIP.trim() === "") {
+        await print("> Lookup cancelled.\n");
+        return;
+    }
+
+    targetIP = targetIP.trim();
+
+    await print(`> Resolving IP: ${targetIP} ...`);
+    await print("> Contacting geographic data servers...");
+
+    // Fetch from ipinfo using YOUR token
+    let info = await fetch(`https://ipinfo.io/${targetIP}/json?token=f2f682efddfa5d`)
+        .then(res => res.json())
+        .catch(() => null);
+
+    if (!info || info.error) {
+        await print("> ERROR: Unable to resolve IP.");
+        await print("> The IP may be invalid or unreachable.\n");
+        return;
+    }
+
+    await print("");
+    await print("=== IP LOOKUP RESULTS ===");
+
+    await print(`IP Address:         ${info.ip || targetIP}`);
+    await print(`Hostname:           ${info.hostname || "Unknown"}`);
+    await print(`City:               ${info.city || "Unknown"}`);
+    await print(`Region:             ${info.region || "Unknown"}`);
+    await print(`Country:            ${info.country || "Unknown"}`);
+    await print(`Postal Code:        ${info.postal || "Unknown"}`);
+    await print(`Coordinates:        ${info.loc || "Unknown"}`);
+    await print(`Timezone:           ${info.timezone || "Unknown"}`);
+    await print(`ISP / Organization: ${info.org || "Unknown"}`);
+
+    await print("============================\n");
+
+    // -------- OPTIONAL: VPN Detection (Same as TRACE) --------
+    let vpnStatus = "No VPN detected";
+
+    if (info.hostname && info.hostname.toLowerCase().includes("vpn")) {
+        vpnStatus = "YES (Hostname suggests VPN)";
+    }
+
+    const hostingKeywords = [
+        "amazon", "aws", "google", "digitalocean", "ovh", "hetzner",
+        "linode", "contabo", "azure", "cloudflare", "vultr"
+    ];
+
+    const orgLower = (info.org || "").toLowerCase();
+    if (hostingKeywords.some(k => orgLower.includes(k))) {
+        vpnStatus = "LIKELY (Hosting / Proxy Provider)";
+    }
+
+    await print(`> VPN / Proxy Detection: ${vpnStatus}`);
+
+    await print("\n> Lookup complete.\n");
+}
   
 // ------------------------
 // NEARBY DEVICE SCAN (Real + Fake)
