@@ -22,25 +22,86 @@ function print(line, delay = 20) {
 async function runSequence(type) {
   
 // ------------------------
-// BLUETOOTH NEARBY DEVICES
+// NEARBY DEVICE SCAN (Real + Fake)
 // ------------------------
-if (type === "bluetooth") {
-  await print("> Initiating Bluetooth scan...");
-  await print("> Waiting for user to allow device access...");
+if (type === "nearby") {
 
-  try {
-    const device = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: true
-    });
+    await print("> Initializing Nearby Device Scan...");
+    await print("> Checking Bluetooth adapter...");
 
-    await print("> Device detected:");
-    await print(`  Name: ${device.name || "Unknown"}`);
-    await print(`  ID: ${device.id}`);
-    await print("> Scan complete.\n");
+    let realDevices = [];
 
-  } catch (err) {
-    await print("> Bluetooth scan cancelled or denied.\n");
-  }
+    // REAL BLUETOOTH DEVICE SCAN
+    try {
+        const options = {
+            acceptAllDevices: true,
+            optionalServices: []
+        };
+
+        await print("> Scanning for real Bluetooth devices...");
+        let device = await navigator.bluetooth.requestDevice(options);
+
+        if (device) {
+            realDevices.push(device.name || "Unknown Device");
+            await print(`> REAL Device Found: ${device.name || "Unnamed Device"}`);
+        }
+    } catch (err) {
+        await print("> Bluetooth scan skipped (permission denied or unsupported).");
+    }
+
+    await print("\n> Starting extended network device discovery...");
+
+    // --------------- Fake LAN Devices (super realistic) ---------------
+    function randomMac() {
+        const vendors = ["D4:93:90", "58:8A:5A", "FC:EC:DA", "BC:4B:79", "3C:5A:B4"];
+        let prefix = vendors[Math.floor(Math.random() * vendors.length)];
+        let rest = Array.from({ length: 3 }, () =>
+            Math.floor(Math.random() * 256).toString(16).padStart(2, "0")
+        ).join(":");
+        return prefix + ":" + rest;
+    }
+
+    function randomIP() {
+        return `192.168.1.${Math.floor(Math.random() * 150 + 2)}`;
+    }
+
+    const fakeDevices = [
+        { type: "iPhone 15", vendor: "Apple, Inc." },
+        { type: "Samsung Galaxy", vendor: "Samsung Electronics" },
+        { type: "PlayStation 5", vendor: "Sony Interactive" },
+        { type: "Amazon Fire TV", vendor: "Amazon Technologies" },
+        { type: "HP Laptop", vendor: "HP, Inc." },
+        { type: "Oculus Quest 2", vendor: "Meta Platforms" },
+    ];
+
+    // Randomize selection
+    const selectedDevices = fakeDevices.sort(() => 0.5 - Math.random()).slice(0, 4);
+
+    await print("\n=== NEARBY DEVICES FOUND ===");
+
+    // Show REAL devices first
+    if (realDevices.length > 0) {
+        for (let d of realDevices) {
+            await print(`REAL DEVICE: ${d}`);
+        }
+    } else {
+        await print("No real Bluetooth devices detected.");
+    }
+
+    // Show FAKE devices (but realistic!)
+    for (let d of selectedDevices) {
+        await print(`
+Device: ${d.type}
+IP Address: ${randomIP()}
+MAC Address: ${randomMac()}
+Vendor: ${d.vendor}
+Signal Strength: -${Math.floor(Math.random() * 30 + 50)} dBm
+Last Seen: ${Math.floor(Math.random() * 5 + 1)} seconds ago
+        `.trim());
+    }
+
+    await print("=============================\n");
+    await print("> Nearby device scan complete.\n");
 }
 
   // ------------------------
