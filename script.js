@@ -243,7 +243,6 @@ async function runSequence(type) {
     await print("\n> Browser fingerprint complete.\n");
   }
 
-
 // ------------------------
 // SPEED TEST
 // ------------------------
@@ -257,13 +256,20 @@ if (type === "speed") {
   await print(`Ping: ${ping} ms`);
   await print("> Testing download speed...");
 
-  const testUrl = "https://speed.hetzner.de/10MB.bin";
+  const testUrl = "https://speed.hetzner.de/1MB.bin"; // smaller file for speed
   const t1 = performance.now();
-  const dl = await fetch(testUrl);
-  const buf = await dl.arrayBuffer();
-  const t2 = performance.now();
+  const response = await fetch(testUrl);
+  const reader = response.body.getReader();
+  let received = 0;
 
-  const mbps = (((buf.byteLength / 1024 / 1024) / ((t2 - t1) / 1000)) * 8).toFixed(2);
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    received += value.length;
+  }
+
+  const t2 = performance.now();
+  const mbps = (((received / 1024 / 1024) / ((t2 - t1) / 1000)) * 8).toFixed(2);
   await print(`Download Speed: ${mbps} Mbps`);
 
   await print("\n> Speed Test complete.\n");
