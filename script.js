@@ -104,62 +104,99 @@ if (type === "trace") {
 }
 
 // ------------------------
-// DEVICE INFO SCAN
+// ACCURATE DEVICE INFO SCAN
 // ------------------------
 if (type === "device") {
-    await print("> Initializing Device Info Scan...");
-    
-    // Basic browser/device info
-    const platform = navigator.platform;
-    const ua = navigator.userAgent;
-    const language = navigator.language;
-    const cores = navigator.hardwareConcurrency || "Unknown";
-    const memory = navigator.deviceMemory ? navigator.deviceMemory + " GB" : "Unknown";
-    const width = screen.width;
-    const height = screen.height;
-    const pixelRatio = window.devicePixelRatio;
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const touch = 'ontouchstart' in window ? "ENABLED" : "DISABLED";
-    
-    await print(`> Platform: ${platform}`);
-    await print(`> Browser: ${ua}`);
-    await print(`> Language: ${language}`);
-    await print(`> CPU Cores: ${cores}`);
-    await print(`> Approx RAM: ${memory}`);
-    await print(`> Screen: ${width}x${height} @ ${pixelRatio}x`);
-    await print(`> Touch Support: ${touch}`);
-    await print(`> Timezone: ${timezone}`);
+    await print("> Starting Accurate Device Scan...");
+    await print("> Collecting browser and hardware identifiers...\n");
 
-    // GPU info via WebGL
-    let gpu = "Unknown";
+    // BASIC IDENTIFIERS
+    await print(`Platform: ${navigator.platform || "Unknown"}`);
+    await print(`User Agent: ${navigator.userAgent}`);
+    await print(`Language: ${navigator.language}`);
+    await print(`Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
+
+    // CPU CORES
+    await print(`CPU Cores: ${navigator.hardwareConcurrency || "Unknown"}`);
+
+    // RAM
+    await print(`Approx RAM: ${navigator.deviceMemory ? navigator.deviceMemory + " GB" : "Unknown"}`);
+
+    // SCREEN INFO
+    await print(`Screen Resolution: ${screen.width} x ${screen.height}`);
+    await print(`Pixel Ratio: ${window.devicePixelRatio}`);
+
+    // TOUCH
+    await print(`Touch Support: ${("ontouchstart" in window) ? "Yes" : "No"}`);
+
+    // GPU INFO (ACCURATE via WebGL)
     try {
         const canvas = document.createElement("canvas");
         const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
         if (gl) {
             const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
-            if (debugInfo) {
-                gpu = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-            }
+            const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+            const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            await print(`GPU Vendor: ${vendor}`);
+            await print(`GPU Renderer: ${renderer}`);
+        } else {
+            await print("GPU: Unknown (WebGL unavailable)");
         }
-    } catch(e){}
-    await print(`> GPU: ${gpu}`);
+    } catch (e) {
+        await print("GPU: Unknown (blocked)");
+    }
 
-    // Battery info
+    // STORAGE (REAL BROWSER API)
+    if (navigator.storage && navigator.storage.estimate) {
+        try {
+            const est = await navigator.storage.estimate();
+            const usage = (est.usage / (1024**3)).toFixed(2);
+            const quota = (est.quota / (1024**3)).toFixed(2);
+            await print(`Storage Used: ${usage} GB`);
+            await print(`Storage Total: ${quota} GB`);
+        } catch (e) {
+            await print("Storage: Unknown");
+        }
+    }
+
+    // BATTERY INFO (REAL IF SUPPORTED)
     if (navigator.getBattery) {
         try {
             const battery = await navigator.getBattery();
-            await print(`> Battery Level: ${Math.round(battery.level * 100)}%`);
-            await print(`> Charging: ${battery.charging ? "Yes" : "No"}`);
-        } catch(e){}
+            await print(`Battery Level: ${Math.round(battery.level * 100)}%`);
+            await print(`Charging: ${battery.charging ? "Yes" : "No"}`);
+        } catch (e) {
+            await print("Battery: Unknown");
+        }
     }
 
-    // Network info
+    // NETWORK INFO (ACCURATE)
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (connection && connection.effectiveType) {
-        await print(`> Connection Type: ${connection.effectiveType.toUpperCase()}`);
-        await print(`> Downlink: ${connection.downlink} Mbps`);
+    if (connection) {
+        await print(`Connection Type: ${connection.effectiveType}`);
+        await print(`Downlink: ${connection.downlink} Mbps`);
     }
 
-    await print("> Device scan complete.\n");
+    // AUDIO/VIDEO DEVICES (NAMES ONLY IF PERMISSION ALREADY GRANTED)
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cams = devices.filter(d => d.kind === "videoinput").length;
+        const mics = devices.filter(d => d.kind === "audioinput").length;
+        await print(`Cameras Detected: ${cams}`);
+        await print(`Microphones Detected: ${mics}`);
+    } catch (e) {
+        await print("Camera/Microphone Access: Blocked");
+    }
+
+    // PERMISSION STATUS (ACCURATE)
+    if (navigator.permissions) {
+        const camPerm = await navigator.permissions.query({ name: "camera" }).catch(() => null);
+        const micPerm = await navigator.permissions.query({ name: "microphone" }).catch(() => null);
+
+        if (camPerm) await print(`Camera Permission: ${camPerm.state}`);
+        if (micPerm) await print(`Microphone Permission: ${micPerm.state}`);
+    }
+
+    await print("\n> Accurate device scan complete.\n");
 }
 }
