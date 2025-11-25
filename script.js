@@ -20,43 +20,6 @@ function print(line, delay = 20) {
 }
 
 async function runSequence(type) {
-
-// ------------------------
-// MANUAL IP LOOKUP
-// ------------------------
-if (type === "lookup") {
-    await print("> Manual IP Lookup Mode Enabled...");
-    await print("> Enter an IP address to scan:\n");
-
-    let ip = prompt("Enter an IP address:");
-
-    if (!ip) {
-        await print("> Lookup canceled.\n");
-        return;
-    }
-
-    await print(`> Querying records for ${ip} ...`);
-
-    try {
-        let data = await fetch(`https://ipinfo.io/${ip}/json?token=f2f682efddfa5d`)
-            .then(res => res.json());
-
-        await print("");
-        await print("=== MANUAL IP LOOKUP RESULT ===");
-        await print(`IP Address:         ${data.ip || ip}`);
-        await print(`Hostname:           ${data.hostname || "UNKNOWN"}`);
-        await print(`City:               ${data.city || "UNKNOWN"}`);
-        await print(`Region:             ${data.region || "UNKNOWN"}`);
-        await print(`Country:            ${data.country || "UNKNOWN"}`);
-        await print(`Postal Code:        ${data.postal || "UNKNOWN"}`);
-        await print(`Coordinates:        ${data.loc || "UNKNOWN"}`);
-        await print(`Timezone:           ${data.timezone || "UNKNOWN"}`);
-        await print(`ISP / Organization: ${data.org || "UNKNOWN"}`);
-        await print("================================\n");
-    } 
-    catch (e) {
-        await print("> ERROR: Failed to fetch IP data.\n");
-    }
   
 // ------------------------
 // NEARBY DEVICE SCAN (Real + Fake)
