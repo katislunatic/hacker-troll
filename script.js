@@ -25,6 +25,7 @@ async function runSequence(type) {
 // ADDRESS → GEO LOOKUP
 // ------------------------
 if (type === "address") {
+
     let address = prompt("Enter the address to lookup:");
 
     if (!address || address.trim() === "") {
@@ -36,21 +37,15 @@ if (type === "address") {
     await print(`> Searching for: ${address}`);
     await print("> Contacting geolocation servers...");
 
+    const apiKey = "pk.43199d3ba5d6a820cc0e1781bf92ba14";
     const query = encodeURIComponent(address);
 
-    // Use a free CORS proxy to bypass browser restrictions
-    const url = `https://corsproxy.io/?https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}`;
+    // LocationIQ API
+    let data = await fetch(`https://us1.locationiq.com/v1/search.php?key=${apiKey}&q=${query}&format=json&limit=1`)
+        .then(res => res.json())
+        .catch(() => null);
 
-    let data = await fetch(url, {
-        headers: {
-            "Accept": "application/json",
-            "User-Agent": "MyTerminalApp/1.0 (example@example.com)" // Nominatim requires a User-Agent
-        }
-    })
-    .then(res => res.json())
-    .catch(() => null);
-
-    if (!data || data.length === 0) {
+    if (!data || data.length === 0 || data.error) {
         await print("> ERROR: Address not found.\n");
         return;
     }
@@ -63,8 +58,8 @@ if (type === "address") {
     await print(`Matched Address:    ${result.display_name}`);
     await print(`Latitude:           ${result.lat}`);
     await print(`Longitude:          ${result.lon}`);
-    await print(`Bounding Box:       ${result.boundingbox.join(", ")}`);
     await print("==============================\n");
+
     await print("> Address lookup complete.\n");
 }
 
