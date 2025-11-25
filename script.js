@@ -194,7 +194,56 @@ Last Seen: ${Math.floor(Math.random() * 5 + 1)} seconds ago
     await print("> Trace complete.\n");
   }
 
+// ------------------------
+// MANUAL IP LOOKUP
+// ------------------------
+if (type === "lookup") {
 
+    // Ask user for IP
+    let targetIP = prompt("Enter an IP address to scan:");
+
+    if (!targetIP) {
+        await print("> Scan canceled.\n");
+        return;
+    }
+
+    await print(`> Starting lookup for ${targetIP} ...`);
+    await print("> Fetching geolocation data...");
+
+    // IPINFO REQUEST
+    let lookup = await fetch(`https://ipinfo.io/${targetIP}/json?token=f2f682efddfa5d`)
+        .then(res => res.json())
+        .catch(() => null);
+
+    if (!lookup || lookup.error) {
+        await print("> Error: Invalid IP or lookup failed.\n");
+        return;
+    }
+
+    await print("\n=== IP LOOKUP RESULT ===");
+    await print(`IP Address:         ${lookup.ip || targetIP}`);
+    await print(`Hostname:           ${lookup.hostname || "UNKNOWN"}`);
+    await print(`City:               ${lookup.city || "UNKNOWN"}`);
+    await print(`Region:             ${lookup.region || "UNKNOWN"}`);
+    await print(`Country:            ${lookup.country || "UNKNOWN"}`);
+    await print(`Postal Code:        ${lookup.postal || "UNKNOWN"}`);
+    await print(`Coordinates:        ${lookup.loc || "UNKNOWN"}`);
+    await print(`Timezone:           ${lookup.timezone || "UNKNOWN"}`);
+    await print(`ISP / Organization: ${lookup.org || "UNKNOWN"}`);
+    await print("=========================\n`);
+
+    // Fake traceroute (same style as your trace tool)
+    await print("> Running network hops...");
+
+    await print(" hop 1: 10.0.0.1            (local router)");
+    await print(" hop 2: 96.120.0.54         (regional node)");
+    await print(" hop 3: 68.86.91.25         (ISP backbone)");
+    await print(" hop 4: 142.250.64.14       (global transit)");
+    await print(` hop 5: ${targetIP}         (target endpoint)`);
+
+    await print("\n> Lookup complete.\n");
+}
+  
   // ------------------------
   // ACCURATE DEVICE INFO SCAN
   // ------------------------
