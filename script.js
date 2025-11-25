@@ -20,6 +20,28 @@ function print(line, delay = 20) {
 }
 
 async function runSequence(type) {
+  
+// ------------------------
+// BLUETOOTH NEARBY DEVICES
+// ------------------------
+if (type === "bluetooth") {
+  await print("> Initiating Bluetooth scan...");
+  await print("> Waiting for user to allow device access...");
+
+  try {
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true
+    });
+
+    await print("> Device detected:");
+    await print(`  Name: ${device.name || "Unknown"}`);
+    await print(`  ID: ${device.id}`);
+    await print("> Scan complete.\n");
+
+  } catch (err) {
+    await print("> Bluetooth scan cancelled or denied.\n");
+  }
+}
 
   // ------------------------
   // SYSTEM SCAN
