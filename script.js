@@ -462,4 +462,4 @@ if (type === "speed") {
     await print("> Files decrypted successfully.\n");
   }
 
-}
+} // <-- THIS closes runSequence()
